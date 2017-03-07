@@ -1,0 +1,12 @@
+HOUR (?:2[0123]|[01]?[0-9])
+MINUTE (?:[0-5][0-9])
+# '60' is a leap second in most time standards and thus is valid.
+SECOND (?:(?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?)
+TIME (?!<[0-9])%{HOUR}:%{MINUTE}(?::%{SECOND})(?![0-9])
+CUSTOMJAVAYEAR (\d{4}-\d{2}-\d{2})
+CUSTOMJAVADATE %{CUSTOMJAVAYEAR} %{TIME}
+ANYTHING .+
+CUSTOMJAVAUUID (\[uuid:\s*%{ANYTHING:uuid}\s*\])?
+CUSTOMJAVAMESSAGE (.*)
+CUSTOMJAVAMAIN %{CUSTOMJAVADATE:timestamp}\s*%{CUSTOMJAVAUUID}\s*%{WORD:loglevel}\s*%{CUSTOMJAVAMESSAGE:javamessage}
+CUSTOMWILDFLY %{TIME:time}\s*%{WORD:loglevel}\s*%{ANYTHING:wildflymessage}
