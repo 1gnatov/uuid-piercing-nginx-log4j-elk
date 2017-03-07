@@ -1,0 +1,36 @@
+How to add uuid processing:
+
+you need to extract it from http header 'X-Request-ID', in example using Aspect4J on your Spring RestController:
+
+
+@Around("@within(org.springframework.web.bind.annotation.RestController) && execution(public * *(javax.servlet.http.HttpServletRequest))")
+	public Object testAspect(ProceedingJoinPoint pjp) throws Throwable {
+		try {
+			String uuid = "";
+
+			//should be more careful with extracting header in real application
+
+			try {
+				uuid = ((HttpServletRequest) pjp.getArgs()[0]).getHeader("X-Request-ID");
+			} catch (Exception ex) {
+				//pass
+			}
+			if (StringUtils.isEmpty(uuid)) {
+				uuid = UUID.randomUUID().toString();
+			}
+
+			// check %X{uuid_log} in log4j.properties
+
+			MDC.put("uuid_log", "[uuid:" + uuid + "]");
+			MDC.put("uuid", uuid);
+
+			return pjp.proceed();
+		} finally {
+			MDC.remove("uuid_log");
+			MDC.remove("uuid");
+		}
+	}
+
+
+So when new thread is starting or getting from thread pool you need to set threadlocal variable MDC for log4j logging.
+Also if you want to send uuid through one microservice to another simply add a header 'X-Request-ID' with MDC.get("uuid") to your request (or response)
